@@ -8,8 +8,8 @@ from functools import lru_cache
 st.set_page_config(page_title="JPQ Fotos", layout="wide")
 
 # --- CONFIGURACIÓN ---
-ZONAS_ROOT = "12mvWd_ppV1mHr0GRoaArAqTWYXopTAWt"
-LLAVES_ROOT = "1J6YKXSB9LOVHrep21_-YvSe_40qBQquJ"
+ZONAS_ROOT = "194qmv9CO7ktgps6D9lbgB-svqeVKo3M7"  # id de la subcarpeta ZONAS
+LLAVES_ROOT = "119We02AjgqcHLpBDXRSQAXPAblTJYCvI"  # id de la subcarpeta LLAVES
 ROOTS = {"ZONAS": ZONAS_ROOT, "LLAVES": LLAVES_ROOT}
 
 ENTRY_PATTERN = re.compile(
@@ -80,17 +80,8 @@ def render_photo_grid(files):
 def main():
     st.title("JPQ Fotos")
     etapa = st.selectbox("Etapa", list(ROOTS.keys()))
-    # Primer nivel: buscar subcarpeta ZONAS o LLAVES
-    root_folders = get_folder_entries(ROOTS[etapa])
-    subfolder_id = None
-    for f in root_folders:
-        if f['is_folder'] and f['title'].strip().upper() == etapa:
-            subfolder_id = f['id']
-            break
-    if not subfolder_id:
-        st.error(f"No se encontró la subcarpeta '{etapa}' en la raíz. Verifica la estructura de Google Drive.")
-        return
-    rama_folders = get_folder_entries(subfolder_id)
+    # Ahora los ROOTS apuntan directo a la subcarpeta ZONAS o LLAVES
+    rama_folders = get_folder_entries(ROOTS[etapa])
     ramas = [f['title'] for f in rama_folders if f['is_folder']]
     rama = st.selectbox("Rama", ramas)
     rama_ids = [f['id'] for f in rama_folders if f['title'] == rama]
