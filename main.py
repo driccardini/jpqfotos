@@ -82,7 +82,9 @@ def main():
     etapa = st.selectbox("Etapa (ZONAS o LLAVES)", list(ROOTS.keys()))
     try:
         # Primer nivel: RAMA (subcarpetas directas de la ETAPA seleccionada)
+
         rama_folders = [f for f in get_folder_entries(ROOTS[etapa]) if f['is_folder'] and f['title'] not in ROOTS.keys()]
+        st.write("**DEBUG - Ramas detectadas:**", [f['title'] for f in rama_folders])
         ramas = [f['title'] for f in rama_folders] if rama_folders else ["(Sin ramas)"]
         rama = st.selectbox("Rama (Caballeros, Damas, etc.)", ramas)
         rama_folder = next((f for f in rama_folders if f['title'] == rama), None)
@@ -90,6 +92,7 @@ def main():
         # Segundo nivel: CATEGORÍA (subcarpetas directas de la RAMA seleccionada)
         if rama_folder:
             cat_folders = [f for f in get_folder_entries(rama_folder['id']) if f['is_folder']]
+            st.write("**DEBUG - Categorías detectadas:**", [f['title'] for f in cat_folders])
             categorias = [f['title'] for f in cat_folders] if cat_folders else ["(Sin categorías)"]
             cat_folder = next((f for f in cat_folders if f['title'] == categoria), None) if rama_folder else None
         else:
@@ -100,6 +103,7 @@ def main():
         # Tercer nivel: DÍA (subcarpetas directas de la CATEGORÍA seleccionada)
         if cat_folder:
             dia_folders = [f for f in get_folder_entries(cat_folder['id']) if f['is_folder']]
+            st.write("**DEBUG - Días detectados:**", [f['title'] for f in dia_folders])
             dias = [f['title'] for f in dia_folders] if dia_folders else ["(Sin días)"]
             dia_folder = next((f for f in dia_folders if f['title'] == dia), None) if cat_folder else None
         else:
