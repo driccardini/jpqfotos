@@ -80,7 +80,17 @@ def render_photo_grid(files):
 def main():
     st.title("JPQ Fotos")
     etapa = st.selectbox("Etapa", list(ROOTS.keys()))
-    rama_folders = get_folder_entries(ROOTS[etapa])
+    # Primer nivel: buscar subcarpeta ZONAS o LLAVES
+    root_folders = get_folder_entries(ROOTS[etapa])
+    subfolder_id = None
+    for f in root_folders:
+        if f['is_folder'] and f['title'].strip().upper() == etapa:
+            subfolder_id = f['id']
+            break
+    if not subfolder_id:
+        st.error(f"No se encontró la subcarpeta '{etapa}' en la raíz. Verifica la estructura de Google Drive.")
+        return
+    rama_folders = get_folder_entries(subfolder_id)
     ramas = [f['title'] for f in rama_folders if f['is_folder']]
     rama = st.selectbox("Rama", ramas)
     rama_ids = [f['id'] for f in rama_folders if f['title'] == rama]
