@@ -79,63 +79,50 @@ def render_photo_grid(files):
 
 def main():
     st.title("JPQ Fotos")
-    etapa = st.selectbox("Etapa", list(ROOTS.keys()))
+    etapa = st.selectbox("Etapa (ZONAS o LLAVES)", list(ROOTS.keys()))
     try:
-        # Primer nivel: ramas (subcarpetas directas de la etapa seleccionada)
+        # Primer nivel: RAMA (subcarpetas directas de la ETAPA seleccionada)
         rama_folders = [f for f in get_folder_entries(ROOTS[etapa]) if f['is_folder']]
         if not rama_folders:
-            st.error("No se encontraron ramas para la etapa seleccionada.")
-            show_last_html_debug()
+            st.error("No se encontraron ramas para la ETAPA seleccionada.")
             return
         ramas = [f['title'] for f in rama_folders]
-        rama = st.selectbox("Rama", ramas)
+        rama = st.selectbox("Rama (Caballeros, Damas, etc.)", ramas)
         rama_folder = next((f for f in rama_folders if f['title'] == rama), None)
         if not rama_folder:
-            st.error("No se encontró la rama seleccionada.")
-            show_last_html_debug()
+            st.error("No se encontró la RAMA seleccionada.")
             return
-        # Segundo nivel: categorías (subcarpetas directas de la rama seleccionada)
+        # Segundo nivel: CATEGORÍA (subcarpetas directas de la RAMA seleccionada)
         cat_folders = [f for f in get_folder_entries(rama_folder['id']) if f['is_folder']]
         if not cat_folders:
-            st.error("No se encontraron categorías para la rama seleccionada.")
-            show_last_html_debug()
+            st.error("No se encontraron categorías para la RAMA seleccionada.")
             return
         categorias = [f['title'] for f in cat_folders]
-        categoria = st.selectbox("Categoria", categorias)
+        categoria = st.selectbox("Categoría", categorias)
         cat_folder = next((f for f in cat_folders if f['title'] == categoria), None)
         if not cat_folder:
-            st.error("No se encontró la categoría seleccionada.")
-            show_last_html_debug()
+            st.error("No se encontró la CATEGORÍA seleccionada.")
             return
-        # Tercer nivel: días (subcarpetas directas de la categoría seleccionada)
+        # Tercer nivel: DÍA (subcarpetas directas de la CATEGORÍA seleccionada)
         dia_folders = [f for f in get_folder_entries(cat_folder['id']) if f['is_folder']]
         if not dia_folders:
-            st.error("No se encontraron días para la categoría seleccionada.")
-            show_last_html_debug()
+            st.error("No se encontraron días para la CATEGORÍA seleccionada.")
             return
         dias = [f['title'] for f in dia_folders]
         dia = st.selectbox("Día", dias)
         dia_folder = next((f for f in dia_folders if f['title'] == dia), None)
         if not dia_folder:
-            st.error("No se encontró el día seleccionado.")
-            show_last_html_debug()
+            st.error("No se encontró el DÍA seleccionado.")
             return
-        # Cuarto nivel: archivos (solo archivos directos en la carpeta del día seleccionado)
+        # Cuarto nivel: archivos (solo archivos directos en la carpeta del DÍA seleccionado)
         files = [f for f in get_folder_entries(dia_folder['id']) if not f['is_folder']]
         st.write(f"Fotos: {len(files)}")
         render_photo_grid(files)
-        show_last_html_debug()
     except RuntimeError as e:
         st.error(str(e))
-        show_last_html_debug()
 
 # --- Función para mostrar el HTML crudo recibido de Google Drive (debug) ---
-def show_last_html_debug():
-    html_raw = getattr(get_folder_entries, '_last_html', None)
-    folder_id = getattr(get_folder_entries, '_last_html_folder', None)
-    if html_raw and folder_id:
-        with st.expander(f"Ver HTML crudo recibido de Google Drive (carpeta {folder_id})", expanded=False):
-            st.code(html_raw[:20000] + ("\n... (truncado) ..." if len(html_raw) > 20000 else ""), language="html")
+
 
 if __name__ == "__main__":
     main()
