@@ -1,0 +1,77 @@
+
+[     UTC     ] Logs for jpqfotos.streamlit.app/
+────────────────────────────────────────────────────────────────────────────────────────
+[17:29:55] 🚀 Starting up repository: 'jpqfotos', branch: 'main', main module: 'main.py'
+[17:29:55] 🐙 Cloning repository...
+[17:29:55] 🐙 Cloning into '/mount/src/jpqfotos'...
+
+[17:29:55] 🐙 Cloned repository!
+[17:29:55] 🐙 Pulling code changes from Github...
+[17:29:56] 📦 Processing dependencies...
+
+──────────────────────────────────────── uv ───────────────────────────────────────────
+
+Using uv pip install.
+Using Python 3.14.3 environment at /home/adminuser/venv[2026-03-18 17:29:56.316724] 
+Resolved 37 packages in 448ms
+Prepared 37 packages in 1.58s
+Installed 37 packages in 87ms
+ + altair==6.0.0
+ + attrs==25.4.0
+ + blinker==1.9.0
+ + cachetools==7.0.5
+ + certifi==2026.2.25
+ + charset-normalizer==3.4.6
+ + click[2026-03-18 17:29:58.440863] ==8.3.1
+ + gitdb==4.0.12
+ + gitpython==3.1.46
+ + idna==3.11
+ + jinja2==3.1.6
+ + jsonschema==4.26.0
+ + jsonschema-specifications==2025.9.1
+ + markupsafe[2026-03-18 17:29:58.441168] ==3.0.3
+ + narwhals==2.18.0
+ + numpy==2.4.3
+ + packaging==26.0
+ + pandas[2026-03-18 17:29:58.441375] ==2.3.3
+ + pillow==12.1.1
+ + protobuf==6.33.5
+ + pyarrow==23.0.1
+ + pydeck==0.9.1
+ + python-dateutil==2.9.0[2026-03-18 17:29:58.441508] .post0
+ + pytz==2026.1.post1
+ + referencing==0.37.0
+ + requests==2.32.5
+ + rpds-py==0.30.0
+ + [2026-03-18 17:29:58.441623] six==1.17.0
+ + smmap==5.0.3
+ + streamlit==1.55.0
+ + tenacity==9.1.4
+ + toml==0.10.2
+ + tornado[2026-03-18 17:29:58.441713] ==6.5.5
+ + typing-extensions==4.15.0
+ + tzdata==2025.3
+ + urllib3==2.6.3
+ +[2026-03-18 17:29:58.441816]  watchdog==6.0.0
+Checking if Streamlit is installed
+Found Streamlit version 1.55.0 in the environment
+Installing rich for an improved exception logging
+Using uv pip install.
+Using Python 3.14.3 environment at /home/adminuser/venv
+Resolved 4 packages in 141ms
+Prepared 4 packages in 127ms
+Installed 4 packages in 17ms
+ + markdown-it-py==4.0.0
+ +[2026-03-18 17:30:00.140683]  mdurl==0.1.2
+ + pygments==2.19.2
+ + rich==14.3.3
+
+────────────────────────────────────────────────────────────────────────────────────────
+
+[17:30:00] 🐍 Python dependencies were installed from /mount/src/jpqfotos/requirements.txt using uv.
+[17:30:00] 📦 WARN: More than one requirements file detected in the repository. Available options: uv /mount/src/jpqfotos/requirements.txt, poetry /mount/src/jpqfotos/pyproject.toml. Used: uv with /mount/src/jpqfotos/requirements.txt
+Check if streamlit is installed
+Streamlit is already installed
+[17:30:02] 📦 Processed dependencies!
+
+

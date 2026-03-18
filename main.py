@@ -1,47 +1,47 @@
 
 import streamlit as st
 import requests
-import re
 import html
+from drive_parser import parse_drive_folders
 from functools import lru_cache
 
 st.set_page_config(page_title="JPQ Fotos", layout="wide")
 
 # --- CONFIGURACIÓN ---
-ZONAS_ROOT = "194qmv9CO7ktgps6D9lbgB-svqeVKo3M7"  # id de la subcarpeta ZONAS
+ZONAS_ROOT = "12mvWd_ppV1mHr0GRoaArAqTWYXopTAWt"  # id de la subcarpeta ZONAS (actualizado)
 LLAVES_ROOT = "119We02AjgqcHLpBDXRSQAXPAblTJYCvI"  # id de la subcarpeta LLAVES
 ROOTS = {"ZONAS": ZONAS_ROOT, "LLAVES": LLAVES_ROOT}
 
-ENTRY_PATTERN = re.compile(
-    r'<div class="flip-entry" id="entry-(?P<id>[A-Za-z0-9_-]+)".*?'
-    r'<a href="https://drive\\.google\\.com/(?P<link>(?:drive/folders|file/d)/[^\"?]+)"[^>]*>.*?'
-    r'<div class="flip-entry-title">(?P<title>.*?)</div>.*?'
-    r'<div class="flip-entry-last-modified"><div>(?P<last_modified>.*?)</div>',
-    re.DOTALL,
-)
+
 
 @lru_cache(maxsize=32)
 def get_folder_entries(folder_id, cache_version="v1"):
     url = f"https://drive.google.com/embeddedfolderview?id={folder_id}#list"
     page = requests.get(url, timeout=20).text
+    # Guardar el HTML crudo en un atributo de la función para depuración
+    get_folder_entries._last_html = page
+    get_folder_entries._last_html_folder = folder_id
     entries = []
-    for m in ENTRY_PATTERN.finditer(page):
-        link = m.group('link')
-        is_folder = link.startswith('drive/folders/')
-        entry = {
-            'id': m.group('id'),
-            'title': html.unescape(m.group('title')),
-            'is_folder': is_folder,
-            'link': link,
-        }
-        # Buscar thumbnail si es archivo
-        if not is_folder:
-            img = re.search(r'<img src="([^"]+)"', m.group(0))
-            if img:
-                entry['thumb'] = img.group(1)
-            else:
-                entry['thumb'] = ''
-        entries.append(entry)
+    try:
+        parsed = parse_drive_folders(page)
+        for entry in parsed:
+            entries.append({
+                'id': entry['id'],
+                'title': html.unescape(entry['title']),
+                'is_folder': entry.get('is_folder', False),
+                'link': entry.get('link', '')
+            })
+    except Exception as e:
+        # Si BeautifulSoup falla, mostrar error genérico
+        raise RuntimeError(f"Error al parsear la carpeta de Google Drive: {e}")
+    if not entries:
+        # Buscar indicios de login o error en el HTML
+        if 'serviceLogin' in page or 'Sign in' in page or 'Inicia sesión' in page:
+            raise RuntimeError("No se puede acceder a la carpeta de Google Drive: requiere permisos o login. Verifica que la carpeta sea pública.")
+        if 'Google Drive - Error' in page or 'No se encuentra' in page or 'not found' in page:
+            raise RuntimeError("No se puede acceder a la carpeta de Google Drive: carpeta no encontrada o eliminada.")
+        # Si no, error genérico
+        raise RuntimeError("No se encontraron entradas en la carpeta de Google Drive. Puede que la estructura haya cambiado, la carpeta esté vacía o no sea pública.")
     return entries
 
 def file_thumbnail_url(fid):
@@ -80,34 +80,62 @@ def render_photo_grid(files):
 def main():
     st.title("JPQ Fotos")
     etapa = st.selectbox("Etapa", list(ROOTS.keys()))
-    # Ahora los ROOTS apuntan directo a la subcarpeta ZONAS o LLAVES
-    rama_folders = get_folder_entries(ROOTS[etapa])
-    ramas = [f['title'] for f in rama_folders if f['is_folder']]
-    rama = st.selectbox("Rama", ramas)
-    rama_ids = [f['id'] for f in rama_folders if f['title'] == rama]
-    if not rama_ids:
-        st.error("No se encontró la rama seleccionada. Puede que la estructura de Google Drive haya cambiado o esté vacía.")
-        return
-    rama_id = rama_ids[0]
-    cat_folders = get_folder_entries(rama_id)
-    categorias = [f['title'] for f in cat_folders if f['is_folder']]
-    categoria = st.selectbox("Categoria", categorias)
-    cat_ids = [f['id'] for f in cat_folders if f['title'] == categoria]
-    if not cat_ids:
-        st.error("No se encontró la categoría seleccionada. Puede que la estructura de Google Drive haya cambiado o esté vacía.")
-        return
-    cat_id = cat_ids[0]
-    dia_folders = get_folder_entries(cat_id)
-    dias = [f['title'] for f in dia_folders if f['is_folder']]
-    dia = st.selectbox("Día", dias)
-    dia_ids = [f['id'] for f in dia_folders if f['title'] == dia]
-    if not dia_ids:
-        st.error("No se encontró el día seleccionado. Puede que la estructura de Google Drive haya cambiado o esté vacía.")
-        return
-    dia_id = dia_ids[0]
-    files = [f for f in get_folder_entries(dia_id) if not f['is_folder']]
-    st.write(f"Fotos: {len(files)}")
-    render_photo_grid(files)
+    try:
+        # Primer nivel: ramas (subcarpetas directas de la etapa seleccionada)
+        rama_folders = [f for f in get_folder_entries(ROOTS[etapa]) if f['is_folder']]
+        if not rama_folders:
+            st.error("No se encontraron ramas para la etapa seleccionada.")
+            show_last_html_debug()
+            return
+        ramas = [f['title'] for f in rama_folders]
+        rama = st.selectbox("Rama", ramas)
+        rama_folder = next((f for f in rama_folders if f['title'] == rama), None)
+        if not rama_folder:
+            st.error("No se encontró la rama seleccionada.")
+            show_last_html_debug()
+            return
+        # Segundo nivel: categorías (subcarpetas directas de la rama seleccionada)
+        cat_folders = [f for f in get_folder_entries(rama_folder['id']) if f['is_folder']]
+        if not cat_folders:
+            st.error("No se encontraron categorías para la rama seleccionada.")
+            show_last_html_debug()
+            return
+        categorias = [f['title'] for f in cat_folders]
+        categoria = st.selectbox("Categoria", categorias)
+        cat_folder = next((f for f in cat_folders if f['title'] == categoria), None)
+        if not cat_folder:
+            st.error("No se encontró la categoría seleccionada.")
+            show_last_html_debug()
+            return
+        # Tercer nivel: días (subcarpetas directas de la categoría seleccionada)
+        dia_folders = [f for f in get_folder_entries(cat_folder['id']) if f['is_folder']]
+        if not dia_folders:
+            st.error("No se encontraron días para la categoría seleccionada.")
+            show_last_html_debug()
+            return
+        dias = [f['title'] for f in dia_folders]
+        dia = st.selectbox("Día", dias)
+        dia_folder = next((f for f in dia_folders if f['title'] == dia), None)
+        if not dia_folder:
+            st.error("No se encontró el día seleccionado.")
+            show_last_html_debug()
+            return
+        # Cuarto nivel: archivos (solo archivos directos en la carpeta del día seleccionado)
+        files = [f for f in get_folder_entries(dia_folder['id']) if not f['is_folder']]
+        st.write(f"Fotos: {len(files)}")
+        render_photo_grid(files)
+        show_last_html_debug()
+    except RuntimeError as e:
+        st.error(str(e))
+        show_last_html_debug()
+
+# --- Función para mostrar el HTML crudo recibido de Google Drive (debug) ---
+def show_last_html_debug():
+    html_raw = getattr(get_folder_entries, '_last_html', None)
+    folder_id = getattr(get_folder_entries, '_last_html_folder', None)
+    if html_raw and folder_id:
+        with st.expander(f"Ver HTML crudo recibido de Google Drive (carpeta {folder_id})", expanded=False):
+            st.code(html_raw[:20000] + ("\n... (truncado) ..." if len(html_raw) > 20000 else ""), language="html")
 
 if __name__ == "__main__":
     main()
