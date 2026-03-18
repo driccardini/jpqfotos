@@ -82,7 +82,7 @@ def main():
     etapa = st.selectbox("Etapa (ZONAS o LLAVES)", list(ROOTS.keys()))
     try:
         # Primer nivel: RAMA (subcarpetas directas de la ETAPA seleccionada)
-        rama_folders = [f for f in get_folder_entries(ROOTS[etapa]) if f['is_folder']]
+        rama_folders = [f for f in get_folder_entries(ROOTS[etapa]) if f['is_folder'] and f['title'] not in ROOTS.keys()]
         if not rama_folders:
             st.error("No se encontraron ramas para la ETAPA seleccionada.")
             return
