@@ -83,15 +83,27 @@ def main():
     rama_folders = get_folder_entries(ROOTS[etapa])
     ramas = [f['title'] for f in rama_folders if f['is_folder']]
     rama = st.selectbox("Rama", ramas)
-    rama_id = [f['id'] for f in rama_folders if f['title'] == rama][0]
+    rama_ids = [f['id'] for f in rama_folders if f['title'] == rama]
+    if not rama_ids:
+        st.error("No se encontró la rama seleccionada. Puede que la estructura de Google Drive haya cambiado o esté vacía.")
+        return
+    rama_id = rama_ids[0]
     cat_folders = get_folder_entries(rama_id)
     categorias = [f['title'] for f in cat_folders if f['is_folder']]
     categoria = st.selectbox("Categoria", categorias)
-    cat_id = [f['id'] for f in cat_folders if f['title'] == categoria][0]
+    cat_ids = [f['id'] for f in cat_folders if f['title'] == categoria]
+    if not cat_ids:
+        st.error("No se encontró la categoría seleccionada. Puede que la estructura de Google Drive haya cambiado o esté vacía.")
+        return
+    cat_id = cat_ids[0]
     dia_folders = get_folder_entries(cat_id)
     dias = [f['title'] for f in dia_folders if f['is_folder']]
     dia = st.selectbox("Día", dias)
-    dia_id = [f['id'] for f in dia_folders if f['title'] == dia][0]
+    dia_ids = [f['id'] for f in dia_folders if f['title'] == dia]
+    if not dia_ids:
+        st.error("No se encontró el día seleccionado. Puede que la estructura de Google Drive haya cambiado o esté vacía.")
+        return
+    dia_id = dia_ids[0]
     files = [f for f in get_folder_entries(dia_id) if not f['is_folder']]
     st.write(f"Fotos: {len(files)}")
     render_photo_grid(files)
