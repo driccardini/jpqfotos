@@ -83,41 +83,40 @@ def main():
     try:
         # Primer nivel: RAMA (subcarpetas directas de la ETAPA seleccionada)
         rama_folders = [f for f in get_folder_entries(ROOTS[etapa]) if f['is_folder'] and f['title'] not in ROOTS.keys()]
-        if not rama_folders:
-            st.error("No se encontraron ramas para la ETAPA seleccionada.")
-            return
-        ramas = [f['title'] for f in rama_folders]
+        ramas = [f['title'] for f in rama_folders] if rama_folders else ["(Sin ramas)"]
         rama = st.selectbox("Rama (Caballeros, Damas, etc.)", ramas)
         rama_folder = next((f for f in rama_folders if f['title'] == rama), None)
-        if not rama_folder:
-            st.error("No se encontró la RAMA seleccionada.")
-            return
+
         # Segundo nivel: CATEGORÍA (subcarpetas directas de la RAMA seleccionada)
-        cat_folders = [f for f in get_folder_entries(rama_folder['id']) if f['is_folder']]
-        if not cat_folders:
-            st.error("No se encontraron categorías para la RAMA seleccionada.")
-            return
-        categorias = [f['title'] for f in cat_folders]
+        if rama_folder:
+            cat_folders = [f for f in get_folder_entries(rama_folder['id']) if f['is_folder']]
+            categorias = [f['title'] for f in cat_folders] if cat_folders else ["(Sin categorías)"]
+            cat_folder = next((f for f in cat_folders if f['title'] == categoria), None) if rama_folder else None
+        else:
+            categorias = ["(Sin categorías)"]
+            cat_folder = None
         categoria = st.selectbox("Categoría", categorias)
-        cat_folder = next((f for f in cat_folders if f['title'] == categoria), None)
-        if not cat_folder:
-            st.error("No se encontró la CATEGORÍA seleccionada.")
-            return
+
         # Tercer nivel: DÍA (subcarpetas directas de la CATEGORÍA seleccionada)
-        dia_folders = [f for f in get_folder_entries(cat_folder['id']) if f['is_folder']]
-        if not dia_folders:
-            st.error("No se encontraron días para la CATEGORÍA seleccionada.")
-            return
-        dias = [f['title'] for f in dia_folders]
+        if cat_folder:
+            dia_folders = [f for f in get_folder_entries(cat_folder['id']) if f['is_folder']]
+            dias = [f['title'] for f in dia_folders] if dia_folders else ["(Sin días)"]
+            dia_folder = next((f for f in dia_folders if f['title'] == dia), None) if cat_folder else None
+        else:
+            dias = ["(Sin días)"]
+            dia_folder = None
         dia = st.selectbox("Día", dias)
-        dia_folder = next((f for f in dia_folders if f['title'] == dia), None)
-        if not dia_folder:
-            st.error("No se encontró el DÍA seleccionado.")
-            return
+
         # Cuarto nivel: archivos (solo archivos directos en la carpeta del DÍA seleccionado)
-        files = [f for f in get_folder_entries(dia_folder['id']) if not f['is_folder']]
-        st.write(f"Fotos: {len(files)}")
-        render_photo_grid(files)
+        if dia_folder:
+            files = [f for f in get_folder_entries(dia_folder['id']) if not f['is_folder']]
+            st.write(f"Fotos: {len(files)}")
+            if files:
+                render_photo_grid(files)
+            else:
+                st.info("No hay fotos en esta selección.")
+        else:
+            st.info("No hay fotos en esta selección.")
     except RuntimeError as e:
         st.error(str(e))
 
